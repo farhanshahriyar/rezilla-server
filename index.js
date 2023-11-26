@@ -29,13 +29,13 @@ async function run() {
 
     // Establish and verify connection
     //   const userCollection = client.db("realestateDB").collection("properties");
-    
+    const contactCollection = client.db("realestateDB").collection("contact");
 
     // all post request
     //user collection for post request
    
       
-      // If the user does not exist, insert the new user
+    // If the user does not exist, insert the new user
    
     
 
@@ -50,6 +50,12 @@ async function run() {
 
     // all post request
     //contact collection for post request
+    app.post('/contact', async (req, res) => {
+      const newContact = req.body;
+      const result = await contactCollection.insertOne(newContact);
+      res.json(result);
+    });
+
     
 
     //cart collection for post request
