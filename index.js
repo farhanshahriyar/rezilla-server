@@ -28,20 +28,37 @@ async function run() {
 
 
     // Establish and verify connection
-    //   const userCollection = client.db("realestateDB").collection("properties");
+    const userCollection = client.db("realestateDB").collection("users");
     const contactCollection = client.db("realestateDB").collection("contact");
+
 
     // all post request
     //user collection for post request
-   
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const existingUser = await userCollection.find(query).toArray();
       
-    // If the user does not exist, insert the new user
+      // Check if the user array is not empty, meaning the user already exists
+      if (existingUser.length > 0) {
+        // Stop the function execution and send response here
+        return res.send({ message: 'User already exists', insertedId: null });
+      }
+      
+      // If the user does not exist, insert the new user
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+    
    
     
 
     // all get request
     // all users collection for get request
-    
+    app.get('/users', async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
 
     //menu collection for get request
    
