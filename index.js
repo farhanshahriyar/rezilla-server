@@ -28,8 +28,9 @@ async function run() {
 
 
     // Establish and verify connection
-    const userCollection = client.db("realestateDB").collection("users");
-    const contactCollection = client.db("realestateDB").collection("contact");
+    const userCollection = client.db("realestateDB").collection("users"); // all registered users
+    const propertiesCollection = client.db("realestateDB").collection("properties"); // all properties
+    const contactCollection = client.db("realestateDB").collection("contact"); // all contact
 
 
     // all post request
@@ -60,7 +61,12 @@ async function run() {
       res.send(result);
     });
 
-    //menu collection for get request
+    //properties collection for get request
+    app.get('/properties', async (req, res) => {
+      const cursor = propertiesCollection.find({});
+      const properties = await cursor.toArray();
+      res.send(properties);
+    });
    
     // cart collection for get request
    
