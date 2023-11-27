@@ -30,6 +30,7 @@ async function run() {
     // Establish and verify connection
     const userCollection = client.db("realestateDB").collection("users"); // all registered users
     const propertiesCollection = client.db("realestateDB").collection("properties"); // all properties
+    const wishlistsCollection = client.db("realestateDB").collection("wishlists"); // all wishlist
     const contactCollection = client.db("realestateDB").collection("contact"); // all contact
 
 
@@ -77,7 +78,13 @@ async function run() {
       // console.log(property) // working
     });
    
-    // cart collection for get request
+    // wishlist  collection for get request
+    app.get('/wishlists', async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await wishlistsCollection.find(query).toArray();
+      res.send(result);
+    });
    
 
     // all post request
@@ -90,7 +97,12 @@ async function run() {
 
     
 
-    //cart collection for post request
+    //wishlist collection for post request
+    app.post('/wishlists', async (req, res) => {
+      const wishItem = req.body;
+      const result = await wishlistsCollection.insertOne(wishItem);
+      res.send(result);
+    });
     
 
     // all patch request
@@ -99,7 +111,12 @@ async function run() {
 
     // all delete request
     // cart collection for delete request
-   
+    app.delete('/wishlists/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishlistsCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // user collection for delete request
     
