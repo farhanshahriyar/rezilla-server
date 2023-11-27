@@ -67,6 +67,15 @@ async function run() {
       const properties = await cursor.toArray();
       res.send(properties);
     });
+
+    // single property collection for get request
+    app.get('/properties/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const property = await propertiesCollection.findOne(query);
+      res.send(property);
+      // console.log(property) // working
+    });
    
     // cart collection for get request
    
