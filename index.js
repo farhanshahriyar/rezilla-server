@@ -82,6 +82,7 @@ async function run() {
     app.get('/wishlists', async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
+      // const query = email ? {email} : {}
       const result = await wishlistsCollection.find(query).toArray();
       res.send(result);
     });
@@ -107,7 +108,47 @@ async function run() {
 
     // all patch request
     // role update for patch request from dashboard admin
-    
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      // const updatedUser = req.body;
+      const updateDoc = {
+        $set: {
+          role: 'admin'
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+  
+    // role update for patch request from dashboard agent
+    app.patch('/users/agent/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      // const updatedUser = req.body;
+      const updateDoc = {
+        $set: {
+          role: 'agent'
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    // role update for patch request from dashboard fraud
+    app.patch('/users/fraud/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      // const updatedUser = req.body;
+      const updateDoc = {
+        $set: {
+          role: 'fraud'
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+  
 
     // all delete request
     // cart collection for delete request
@@ -119,6 +160,13 @@ async function run() {
     });
 
     // user collection for delete request
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+
     
 
 
