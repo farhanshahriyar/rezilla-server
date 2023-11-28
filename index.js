@@ -62,6 +62,19 @@ async function run() {
       res.send(result);
     });
 
+    // Get user profile by email
+    app.get('/users/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+
+      if (user) {
+        res.json(user);
+      } else {
+        res.status(404).json({ message: 'User not found' });
+      }
+    });
+
     //properties collection for get request
     app.get('/properties', async (req, res) => {
       const cursor = propertiesCollection.find({});
@@ -168,8 +181,6 @@ async function run() {
     });
 
     
-
-
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
