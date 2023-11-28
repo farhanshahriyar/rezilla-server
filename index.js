@@ -62,6 +62,18 @@ async function run() {
       res.send(result);
     });
 
+    // admin api for access dashboard
+    app.get('/users/admin/:email', async (req, res) =>{
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user.role === 'admin';
+      } 
+      res.send({ admin });
+    })
+
     // Get user profile by email
     app.get('/users/:email', async (req, res) => {
       const email = req.params.email;
