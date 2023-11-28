@@ -57,7 +57,7 @@ async function run() {
 
     // all get request
     // all users collection for get request
-    app.get('/users', async (req, res) => {
+    app.get('/users',  async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
@@ -72,6 +72,40 @@ async function run() {
         admin = user.role === 'admin';
       } 
       res.send({ admin });
+    })
+
+    // // verify admin
+    // const verifyAdmin = async (email) => {
+    //   const query = { email: email };
+    //   const user = await userCollection.findOne(query);
+    //   const isAdmin = user?.role === 'admin';
+    //   if (!isAdmin) {
+    //     return res.send({ message: 'forbidden access' });
+    //   }
+    //   next();
+    // }
+
+    // // verify agent
+    // const verifyAgent = async (email) => {
+    //   const query = { email: email };
+    //   const user = await userCollection.findOne(query);
+    //   const isAgent = user?.role === 'agent';
+    //   if (!isAgent) {
+    //     return res.send({ message: 'forbidden access' });
+    //   }
+    //   next();
+    // }
+
+    // agent api for access dashboard
+    app.get('/users/agent/:email', async (req, res) =>{
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let agent = false;
+      if (user) {
+        agent = user.role === 'agent';
+      } 
+      res.send({ agent });
     })
 
     // Get user profile by email
