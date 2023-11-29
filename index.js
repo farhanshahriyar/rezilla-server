@@ -3,7 +3,6 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
-// import { loadStripe } from '@stripe/stripe-js';
 // import stripe = require(`stripe`)(`${process.env.STRIPE_SECRET_KEY}`);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -48,7 +47,7 @@ async function run() {
       }
       next();
     }
-    
+
     // all post request
     //user collection for post request
     app.post('/users', async (req, res) => {
@@ -82,20 +81,20 @@ async function run() {
       res.json(result);
     });
     
-     //stripe 
-      app.post('/createpayment', async (req, res) => {
-          const paymentIntent = await stripe.paymentIntents.create({
-              amount: req.body.cost * 100,
-              currency: 'usd',
-              payment_method_types: ['card']
-          })
-          res.send({ clientSecret: paymentIntent.client_secret })
-      })
-      //stripe payment save
-      app.post('/api/save-donation-info', async (req, res) => {
-          res.send(await recordCollection.insertOne(req.body))
-      })
-   
+    //stripe 
+    app.post('/createpayment', async (req, res) => {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: req.body.cost * 100,
+            currency: 'usd',
+            payment_method_types: ['card']
+        })
+        res.send({ clientSecret: paymentIntent.client_secret })
+    })
+    //stripe payment save
+    app.post('/api/save-donation-info', async (req, res) => {
+        res.send(await recordCollection.insertOne(req.body))
+    })
+  
     
 
     // all get request
@@ -163,6 +162,14 @@ async function run() {
       res.send(properties);
     });
 
+     //properties collection for get request
+     app.get('/all-properties',  async (req, res) => {
+      const query = { status: "verified" }; 
+      const cursor = propertiesCollection.find({});
+      const properties = await cursor.toArray();
+      res.send(properties);
+    });
+
     // single property collection for get request
     app.get('/properties/:id', async (req, res) => {
       const id = req.params.id;
@@ -188,6 +195,13 @@ async function run() {
       const result = await reviewsCollection.find().toArray();
       res.send(result);
     })
+
+    // properties approve collection for get request
+    app.get('/properties-approved', async (req, res) => {
+      const query = { email: req.query.email };
+      const result = await propertiesCollection.find(query).toArray();
+      res.send(result);
+    });
 
     // get feedback api for get request
   //   app.get('/get-feedback/:name', async (req, res) => {
@@ -301,6 +315,20 @@ async function run() {
         );
         if (result.modifiedCount === 1) {
           res.json({ message: "Property verified successfully!" });
+        } else {
+          res.status(404).json({ message: "Property not found" });
+        }
+      });
+
+      // Admin endpoint for reject properties
+      app.patch('/properties/reject/:propertyId', async (req, res) => {
+        const { propertyId } = req.params;
+        const result = await propertiesCollection.updateOne(
+          { _id: new ObjectId(propertyId) },
+          { $set: { status: "reject" } }
+        );
+        if (result.modifiedCount === 1) {
+          res.json({ message: "Property reject successfully!" });
         } else {
           res.status(404).json({ message: "Property not found" });
         }
