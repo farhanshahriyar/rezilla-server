@@ -192,9 +192,18 @@ async function run() {
     app.get('/reviews', async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
+      const result = await reviewsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // review  collection for get request (admin panel all reviews)
+     app.get('/all-reviews', async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
       const result = await reviewsCollection.find().toArray();
       res.send(result);
     })
+    
 
     // properties approve collection for get request
     app.get('/properties-approved', async (req, res) => {
