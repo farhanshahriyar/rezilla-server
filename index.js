@@ -31,6 +31,7 @@ async function run() {
     const userCollection = client.db("realestateDB").collection("users"); // all registered users
     const propertiesCollection = client.db("realestateDB").collection("properties"); // all properties
     const wishlistsCollection = client.db("realestateDB").collection("wishlists"); // all wishlist
+    const reviewsCollection = client.db("realestateDB").collection("reviews"); // all wishlist
     const contactCollection = client.db("realestateDB").collection("contact"); // all contact
 
 
@@ -50,6 +51,21 @@ async function run() {
       // If the user does not exist, insert the new user
       const result = await userCollection.insertOne(user);
       res.send(result);
+    });
+
+    // // property collection for post request
+    // app.post('/properties', async (req, res) => {
+    //   const newProperty = req.body;
+    //   const result = await propertiesCollection.insertOne(newProperty);
+    //   res.json(result);
+    // });
+
+    // property collection for post request
+    app.post('/properties', async (req, res) => {
+      const newProperty = req.body;
+      newProperty.status = "pending";
+      const result = await propertiesCollection.insertOne(newProperty);
+      res.json(result);
     });
     
    
@@ -123,6 +139,7 @@ async function run() {
 
     //properties collection for get request
     app.get('/properties', async (req, res) => {
+      const query = { status: "verified" }; 
       const cursor = propertiesCollection.find({});
       const properties = await cursor.toArray();
       res.send(properties);
@@ -137,7 +154,7 @@ async function run() {
       // console.log(property) // working
     });
    
-    // wishlist  collection for get request
+    // wishlist collection for get request
     app.get('/wishlists', async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
@@ -145,6 +162,56 @@ async function run() {
       const result = await wishlistsCollection.find(query).toArray();
       res.send(result);
     });
+
+    // review  collection for get request (myreviews)
+    app.get('/reviews', async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await reviewsCollection.find().toArray();
+      res.send(result);
+    })
+
+    // get feedback api for get request
+  //   app.get('/get-feedback/:name', async (req, res) => {
+  //     try {
+  //         const data = await feedback.find({ name: req.params.name }).toArray();
+  //         return res.send(data);
+  //     }
+  //     catch (err) {
+  //         res.status(500).json(
+  //             {
+  //                 success: false,
+  //                 messase: "Internal server error, try again later",
+  //             }
+  //         );
+  //     }
+  // });
+
+
+    //  add review api for post request
+    app.post('/add-review', async (req, res) => {
+      try {
+          const data = await reviewsCollection.insertOne(req.body);
+          if (data.acknowledged) {
+              return res.send(data);
+          } else {
+              res.status(500).json(
+                  {
+                      success: false,
+                      messase: "Internal server error, try again later",
+                  }
+              );
+          }
+      }
+      catch (err) {
+          res.status(500).json(
+              {
+                  success: false,
+                  messase: "Internal server error, try again later",
+              }
+          );
+      }
+  });
    
 
     // all post request
@@ -155,7 +222,6 @@ async function run() {
       res.json(result);
     });
 
-    
 
     //wishlist collection for post request
     app.post('/wishlists', async (req, res) => {
@@ -207,6 +273,20 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+    // Admin endpoint for approving properties
+      app.patch('/properties/approve/:propertyId', async (req, res) => {
+        const { propertyId } = req.params;
+        const result = await propertiesCollection.updateOne(
+          { _id: new ObjectId(propertyId) },
+          { $set: { status: "verified" } }
+        );
+        if (result.modifiedCount === 1) {
+          res.json({ message: "Property verified successfully!" });
+        } else {
+          res.status(404).json({ message: "Property not found" });
+        }
+      });
   
 
     // all delete request
@@ -225,6 +305,23 @@ async function run() {
       const result = await userCollection.deleteOne(query);
       res.send(result);
     });
+
+    // review collection for delete request
+    app.delete('/reviews/:id', async (req, res) => {
+      const reviewId = req.params.id;
+      const query = { _id: new ObjectId(reviewId) };
+      const result = await reviewsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // property collection for delete request
+    app.delete('/properties/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await propertiesCollection.deleteOne(query);
+      res.send(result);
+    });
+
 
     
     // Send a ping to confirm a successful connection
