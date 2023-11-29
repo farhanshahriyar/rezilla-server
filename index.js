@@ -3,6 +3,8 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
+// import { loadStripe } from '@stripe/stripe-js';
+// import stripe = require(`stripe`)(`${process.env.STRIPE_SECRET_KEY}`);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middleware
@@ -32,9 +34,21 @@ async function run() {
     const propertiesCollection = client.db("realestateDB").collection("properties"); // all properties
     const wishlistsCollection = client.db("realestateDB").collection("wishlists"); // all wishlist
     const reviewsCollection = client.db("realestateDB").collection("reviews"); // all wishlist
+    const recordCollection = client.db("realestateDB").collection("buy-record"); // all buy record
     const contactCollection = client.db("realestateDB").collection("contact"); // all contact
 
 
+    // verify admin
+    const verifyAdmin = async (req, res, next) => {
+      const query = { email: req.query.email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.role === 'admin';
+      if (!isAdmin) {
+        return res.status(401).send({ message: 'forbidden access' });
+      }
+      next();
+    }
+    
     // all post request
     //user collection for post request
     app.post('/users', async (req, res) => {
@@ -68,12 +82,25 @@ async function run() {
       res.json(result);
     });
     
+     //stripe 
+      app.post('/createpayment', async (req, res) => {
+          const paymentIntent = await stripe.paymentIntents.create({
+              amount: req.body.cost * 100,
+              currency: 'usd',
+              payment_method_types: ['card']
+          })
+          res.send({ clientSecret: paymentIntent.client_secret })
+      })
+      //stripe payment save
+      app.post('/api/save-donation-info', async (req, res) => {
+          res.send(await recordCollection.insertOne(req.body))
+      })
    
     
 
     // all get request
     // all users collection for get request
-    app.get('/users',  async (req, res) => {
+    app.get('/users', verifyAdmin,  async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
@@ -90,16 +117,7 @@ async function run() {
       res.send({ admin });
     })
 
-    // // verify admin
-    // const verifyAdmin = async (email) => {
-    //   const query = { email: email };
-    //   const user = await userCollection.findOne(query);
-    //   const isAdmin = user?.role === 'admin';
-    //   if (!isAdmin) {
-    //     return res.send({ message: 'forbidden access' });
-    //   }
-    //   next();
-    // }
+    
 
     // // verify agent
     // const verifyAgent = async (email) => {
@@ -138,7 +156,7 @@ async function run() {
     });
 
     //properties collection for get request
-    app.get('/properties', async (req, res) => {
+    app.get('/properties', verifyAdmin, async (req, res) => {
       const query = { status: "verified" }; 
       const cursor = propertiesCollection.find({});
       const properties = await cursor.toArray();
