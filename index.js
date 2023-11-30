@@ -94,6 +94,49 @@ async function run() {
     app.post('/api/save-donation-info', async (req, res) => {
         res.send(await recordCollection.insertOne(req.body))
     })
+
+
+    // offer collection for post request
+    app.post('/offers', async (req, res) => {
+      const offer = req.body;
+      
+      console.log('Received offer propertyId:', offer.propertyId); // Log the propertyId
+      
+      // Validate the propertyId format
+      if (!offer.propertyId || offer.propertyId.length !== 24) {
+        return res.status(400).send({ message: 'Invalid propertyId format' });
+      }
+      
+      try {
+        // Convert propertyId to ObjectId and find the property
+        const property = await propertiesCollection.findOne({ _id: new ObjectId(offer.propertyId) });
+    
+        if (!property) {
+          return res.status(404).send({ message: 'Property not found' });
+        }
+    
+        // Check if the offered amount is within the price range specified by the agent
+        if (offer.offeredAmount < property.price || offer.offeredAmount > property.maxprice) {
+          return res.status(400).send({ message: 'Offered amount is out of the specified price range' });
+        }
+
+        console.log(offer)
+        // Set the status to pending
+        offer.status = "pending";
+        
+        // Add buyer details
+        offer.offerDate = new Date();
+    
+        // Insert the offer into the database
+        const result = await recordCollection.insertOne(offer);
+        res.send(result);
+      } catch (error) {
+        // Catch any errors during the operation
+        console.error('Error when inserting offer:', error);
+        res.status(500).send({ message: 'Error when creating offer' });
+      }
+    });
+    
   
     
 
@@ -115,8 +158,6 @@ async function run() {
       } 
       res.send({ admin });
     })
-
-    
 
     // // verify agent
     // const verifyAgent = async (email) => {
@@ -198,8 +239,8 @@ async function run() {
 
     // review  collection for get request (admin panel all reviews)
      app.get('/all-reviews', async (req, res) => {
-      const email = req.query.email;
-      const query = { email: email };
+      // const email = req.query.email;
+      // const query = { email: email };
       const result = await reviewsCollection.find().toArray();
       res.send(result);
     })
@@ -342,7 +383,29 @@ async function run() {
           res.status(404).json({ message: "Property not found" });
         }
       });
-  
+
+      // // properties collection for patch request from dashboard agent (update property {/dashboard/update-myaddedproperty/})
+      // app.patch('/properties/:id', async (req, res) => {
+      //   const id = req.params.id;
+      //   const updatedProperty = req.body;
+      //   const filter = { _id: new ObjectId(id) };
+
+      //   const updateDoc = {
+      //     $set: {
+      //       imageUrl: updatedProperty.imageUrl, 
+      //       title: updatedProperty.title,
+      //       location: updatedProperty.location,
+      //       price: updatedProperty.price,
+      //       bedrooms: updatedProperty.bedrooms,
+      //       bathrooms: updatedProperty.bathrooms,
+      //       purpose: updatedProperty.purpose,
+      //       description: updatedProperty.description,
+      //     },
+      //   };
+      //   const result = await propertiesCollection.updateOne(filter, updateDoc);
+      //   res.send(result);
+      // });
+        
 
     // all delete request
     // cart collection for delete request
