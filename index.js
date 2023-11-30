@@ -96,7 +96,7 @@ async function run() {
     })
 
 
-    // offer collection for post request
+    // offer collection for post request (offer property from user side)
     app.post('/offers', async (req, res) => {
       const offer = req.body;
       
@@ -262,6 +262,7 @@ async function run() {
     });
 
     // get feedback api for get request
+
   //   app.get('/get-feedback/:name', async (req, res) => {
   //     try {
   //         const data = await feedback.find({ name: req.params.name }).toArray();
@@ -279,6 +280,7 @@ async function run() {
 
 
     //  add review api for post request
+    
     app.post('/add-review', async (req, res) => {
       try {
           const data = await reviewsCollection.insertOne(req.body);
@@ -413,6 +415,27 @@ async function run() {
       //   const result = await propertiesCollection.updateOne(filter, updateDoc);
       //   res.send(result);
       // });
+
+
+      // Admin endpoint for approving properties
+      app.patch('/offerproperties/accept/:id', async (req, res) => {
+        const id = req.params.id;
+        await recordCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { status: 'accepted' } }
+        );
+        res.send({ message: 'Property accepted' });
+      });
+      
+      // Agent endpoint for reject properties
+      app.patch('/offerproperties/reject/:id', async (req, res) => {
+        const id = req.params.id;
+        await recordCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { status: 'rejected' } }
+        );
+        res.send({ message: 'Property rejected' });
+      });
         
 
     // all delete request
