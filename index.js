@@ -261,6 +261,13 @@ async function run() {
       res.send(result);
     });
 
+    // offer accepted or rejected collection for get request to show user (bought property)
+    app.get('/bought-record', async (req, res) => {
+      const query = { email: req.query.email };
+      const result = await recordCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // get feedback api for get request
 
   //   app.get('/get-feedback/:name', async (req, res) => {
