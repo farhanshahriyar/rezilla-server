@@ -123,7 +123,7 @@ async function run() {
         console.log(offer)
         // Set the status to pending
         offer.status = "pending";
-        
+        offer.offeredAmount = parseInt(offer.offeredAmount);
         // Add buyer details
         offer.offerDate = new Date();
     
@@ -250,6 +250,14 @@ async function run() {
     app.get('/properties-approved', async (req, res) => {
       const query = { email: req.query.email };
       const result = await propertiesCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // properties pending collection for get request
+    app.get('/properties-requested', async (req, res) => {
+      const query = { agentName : req.query.email };
+      // console.log(query)
+      const result = await recordCollection.find(query).toArray();
       res.send(result);
     });
 
